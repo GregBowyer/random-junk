@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache-config SYSTEM "cache-config.dtd">
+
+<cache-config>
+
+    <caching-scheme-mapping>
+        <!-- 
+        Caches with any name will be created as default replicated.   
+        -->
+        <cache-mapping>
+            <cache-name>*</cache-name>
+            <scheme-name>default-replicated</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <!-- 
+        Default Replicated caching scheme.
+        -->
+        <replicated-scheme>
+            <scheme-name>default-replicated</scheme-name>
+            <service-name>ReplicatedCache</service-name>
+
+            <backing-map-scheme>
+                <class-scheme>
+                    <scheme-ref>default-backing-map</scheme-ref>
+                </class-scheme>
+            </backing-map-scheme>
+        </replicated-scheme>
+
+        <!-- 
+        Default backing map scheme definition used by all
+        The caches that do not require any eviction policies 
+        -->
+        <class-scheme>
+            <scheme-name>default-backing-map</scheme-name>
+
+            <class-name>com.tangosol.util.SafeHashMap</class-name>
+        </class-scheme>
+
+    </caching-schemes>
+</cache-config>
