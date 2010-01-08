@@ -1,0 +1,9 @@
+;; Clojure program that solves problem 1 in the project euler 
+;; problems
+(defn sum-of-multiples [limit multiples]
+  "Find the sum of the given multiples that are > limit" 
+  (reduce + (filter 
+              #(or (zero? (rem % 3)) (zero? (rem % 5)))
+              (range 1 limit))))
+
+(sum-of-multiples 1000 [3 5])
