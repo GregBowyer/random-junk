@@ -1,0 +1,5 @@
+This is nothing more than a test of asciidoc
+============================================
+Greg Bowyer <gbowyer@fastmail.co.uk>
+
+... To see if it works on github, if that is the case I think I am sold
