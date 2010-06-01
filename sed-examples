@@ -1,0 +1,2 @@
+# Squish anything more that 1 space into a replacement
+echo "aaa  aaaa aaa  aaaqa     aaaa" | sed -r s/[[:blank:]]\{2,\}/:/g 
