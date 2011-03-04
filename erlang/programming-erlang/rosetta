@@ -1,0 +1,14 @@
+Thing               Python              Lisp (clojure)      ErLang
+Comment             #comment            ;comment            %comment
+
+
+Ints                100                 100                 100
+    with base       int(sugar,32)       ??                  32#sugar
+
+Floats              100 / 45.5          100 / 45.5          100 / 45.5.
+                    (→ 2.197)           (→ 100 / 45.5)      (→ 2.197)
+
+
+Assignment          a = 100             (def a 100)         a = 100.
+                    (!mutable!)         (immutable)         (immutable)
+
