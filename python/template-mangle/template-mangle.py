@@ -18,13 +18,18 @@ from lxml.html import HtmlComment
 
 from Sets import OrderedSet
 
+nltk.data.path.append('/home/greg/datasets/nlp/nltk_data/')
+
 TAL_NS = 'http://xml.zope.org/namespaces/tal'
 
-webapp_files = '/Users/750062/work/bizrate.co.uk/webapp/src/main/webapp/'
+webapp_files = '/home/greg/work/site/beso.com/webapp/src/main/webapp/'
 dump_dir = '/tmp/dump/'
-excluded_templates = ['logging', 'debugfooter', 'debugheader', 'debugfooter', 'debugheader', 'about', 'contact_info', 'contact_us', 
-    'contact_us__form-type--business', 'legal', 'press_releases', 'privacy', 'sweepstakes', 'disablecookies',
-    'ratings_guide', 'serverstatus', 'interstitial-static' ]
+
+excluded_templates = [
+   'pods/Common/DirectoryBrands', 'DebugHeader', 'DebugFooter',
+   'ServerStatus', 'pods/Common/DirectoryStores', 'Header',
+   'Footer'
+]
 
 # Functions that generate a key, based on the incoming element
 # These return thier best key and a score out of 100 for 
@@ -57,28 +62,28 @@ abc = nltk.FreqDist(nltk.corpus.abc.words())
 print 'Processing movies list - 5/6'
 movie = nltk.FreqDist(nltk.corpus.movie_reviews.words())
 print 'BizRate corpus list - 6/6'
-bz_corp = nltk.corpus.PlaintextCorpusReader('/Users/750062/work', 'bizrate-corpus')
+bz_corp = nltk.corpus.PlaintextCorpusReader('//home/greg/programming/python/template-mangle/', 'bizrate-corpus')
 bz = nltk.FreqDist(bz_corp.words())
 print 'Done!'
 
 # Add a bit of weight to words common to the BZ site
-manual_weights = { 'search' : 200, 'compare' : 350, 'store' : 400, 'certified' : 300, 'circle' : -4000, 'winner' : 30, 'found' : -100,
-        'bizrate' : -300 , 'buyers' : 20 , 'i' : -4000, 'i' : -4000, 'quality' : - 20, 'often' : -400, 'oh' : -2000,
-        'searches' : 200, 'sitemap' : 100, 'ratings' : 300, 'rated' : 300, 'rerated' : 300, 'error' : 100 , 'you' : -4000,
-        'uk' : -4000, 'site' : 300, 'priority' : 200, 'standard' : 200, 'if' : -400, 'about' : 300, 'smilies' : 600,
-        'smiley' : 600, 'visualise' : 200, 'research' : 200, 'shoppers' : 200, 'comparison' : 150 , 'don' : -4000,
-        'scale' : 400, 'uh' : -44444, 'satisfaction' : 300, 'product' : 400, 'according' : -4000, 'overall' : 500,
-        're' : -100, 'feedback' : 200, 'total' : 200, 'desired' : -600, 'mean' : -200, 'not' : 400, 'announces' : - 25,
-        'purchase' : 300, 'availability' : 300, 'stated' : 50, 'charges' : 200, 'before' : -4000, 'adult' : 300
+manual_weights = {
 }
 
-simple_order = { 'N' : 45, 'I' : 40, 'P' : 34, 'V' : 20, 'D' : 15, 'A' : 10, 'C' : 5 , 'J' : 5, 
-        'R' : 10 , 'W' : -800, 'T' : 1 , 'E' : -100 , 'M' : 1 , 'L' : -600}
+simple_order = {
+    'N' : 45, 'I' : 40, 'P' : 34, 'V' : 20,
+    'D' : 15, 'A' : 10, 'C' : 5 , 'J' : 5,
+    'R' : 10 , 'W' : -800, 'T' : 1 ,
+    'E' : -100 , 'M' : 1 , 'L' : -600
+}
 
 def sorter(lhs, rhs):
-    a = lhs[0] + simple_order[lhs[1][:1]]
-    b = rhs[0] + simple_order[rhs[1][:1]]
-    return a - b
+    try :
+        a = lhs[0] + simple_order[lhs[1][:1]]
+        b = rhs[0] + simple_order[rhs[1][:1]]
+        return a - b
+    except:
+        return -1
 
 def manual_weight(text):
     if len(text) < 3:
@@ -120,9 +125,13 @@ def genkey_summary(element, text):
 def genkey_fallback(elephant, text):
     return (1, str(elephant.__hash__()), 'fallback')
 
-common_syms = { u'...' : 'elipis', u'>' : 'gt', u'<' : 'lt', u'=' : 'equals', 
-        u'.' : 'period', u'£' : 'ERROR_EMBEDDED_CURRENCY_SYM!', u'%' : 'percent' , u':' : 'colon' , u';' : 'semicolon',
-        u'…' : 'elipis', u'|' : 'pipe', u'©' : 'copy' }
+common_syms = {
+    u'...' : 'elipis', u'>' : 'gt', u'<' : 'lt', u'=' : 'equals',
+    u'.' : 'period', u'£' : 'ERROR_EMBEDDED_CURRENCY_SYM!',
+    u'%' : 'percent' , u':' : 'colon' , u';' : 'semicolon',
+    u'…' : 'elipis', u'|' : 'pipe', u'©' : 'copy'
+}
+
 def genkey_syms(element, text):
     if text in common_syms:
         raise CommonSym('COMMON SYM: ' + text)
@@ -141,21 +150,22 @@ generators = [genkey_tag, genkey_id, genkey_ancestors, genkey_fallback, genkey_s
 
 def has_simple_children(element):
 
-    for child in element.getchildren():
-        try:
-            if child.tag is not None and child.tag.lower() not in ('i', 'b', 'em', 'strong', 'cite'):
+    if element:
+        for child in element.getchildren():
+            try:
+                if child.tag is not None and child.tag.lower() not in ('i', 'b', 'em', 'strong', 'cite'):
+                    return False
+            except Exception as ex:
+                print ex
                 return False
-        except Exception as ex:
-            print ex
-            return False
 
-        if child.getchildren():
-            return False
+            if child.getchildren():
+                return False
 
-        if child.attrib:
-            return False
+            if child.attrib:
+                return False
 
-        return True
+            return True
 
     return False
 
@@ -174,7 +184,7 @@ def process_element(element, name, excluded_tags=('style', 'script')):
 
     simple_child_processing = has_simple_children(element)
     orig_text = None
-    
+
     if not [at for at in element.attrib if at.startswith('tal:content') 
             or at.startswith('tal:attribute(alt') or at.startswith('metal:use-macro')
             or at.startswith('tal:replace')]:
@@ -186,7 +196,9 @@ def process_element(element, name, excluded_tags=('style', 'script')):
                 else:
                     orig_text = ''.join(htmlise_children(element.getchildren()))
 
-            if element.text and element.text.strip() != '':
+            if (element.text and element.text.strip() != '' and len(element.text.strip()) > 1) or \
+                simple_child_processing:
+
                 if simple_child_processing:
                     key, key_raw = generate_key(element, element.text_content().strip().replace('UK', ''), name)
                 else:
@@ -201,13 +213,13 @@ def process_element(element, name, excluded_tags=('style', 'script')):
                             child = element.makeelement('span')
                             child.text = 'SC:' + element.text
                             element.text = '\n '
-                            child.attrib['tal:replace'] = "structure localiser/get('{0}', '{1}')".format(name, key_raw)
+                            child.attrib['tal:replace'] = u"structure localiser/get('{0}', '{1}')".format(name, key_raw)
                             child.tail = '\n'
                             element.insert(0, child)
                         else:
-                            element.attrib['tal:content'] = "structure localiser/get('{0}', '{1}')".format(name, key_raw)
+                            element.attrib['tal:content'] = u"structure localiser/get('{0}', '{1}')".format(name, key_raw)
                     else:
-                        element.attrib['tal:content'] = "structure localiser/get('{0}', '{1}')".format(name, key_raw)
+                        element.attrib['tal:content'] = u"structure localiser/get('{0}', '{1}')".format(name, key_raw)
 
             if element.tail and element.tail.strip() != '':
                 key, key_raw = generate_key(element, element.tail.strip().replace('UK',''), name)
@@ -216,7 +228,7 @@ def process_element(element, name, excluded_tags=('style', 'script')):
 
                     element.tail = None
                     child = element.makeelement('span')
-                    child.attrib['tal:replace'] = "structure localiser/get('{0}', '{1}')".format(name, key_raw)
+                    child.attrib['tal:replace'] = u"structure localiser/get('{0}', '{1}')".format(name, key_raw)
                     child.text = element.text
                     child.tail = '\n'
                     element.tail = '\n'
@@ -237,11 +249,11 @@ def process_element(element, name, excluded_tags=('style', 'script')):
                         if 'tal:attributes' in element.attrib:
                             txt = element.attrib['tal:attributes']
                             if 'localiser/get' not in txt:
-                                txt = txt + ";alt localiser/get('{0}','{1}')".format(name, key_raw)
+                                txt = txt + u";alt localiser/get('{0}','{1}')".format(name, key_raw)
                                 element.attrib['alt'] = 'SC: ' + element.attrib['alt']
                                 element.attrib['tal:attributes'] = txt
                         else:
-                            element.attrib['tal:attributes'] = "alt localiser/get('{0}', '{1}')".format(name, key_raw)
+                            element.attrib['tal:attributes'] = u"alt localiser/get('{0}', '{1}')".format(name, key_raw)
 
             if 'value' in element.attrib and element.tag is 'input' and 'submit' in element.attrib:
                 if element.attrib['value'] != '':
@@ -253,11 +265,11 @@ def process_element(element, name, excluded_tags=('style', 'script')):
                         if 'tal:attributes' in element.attrib:
                             txt = element.attrib['tal:attributes']
                             if 'localiser/get' not in txt:
-                                txt = txt + ";value localiser/get('{0}','{1}')".format(name, key_raw)
+                                txt = txt + u";value localiser/get('{0}','{1}')".format(name, key_raw)
                                 element.attrib['value'] = 'SC: ' + element.attrib['value']
                                 element.attrib['tal:attributes'] = txt
                         else:
-                            element.attrib['tal:attributes'] = "value localiser/get('{0}', '{1}')".format(name, key_raw)
+                            element.attrib['tal:attributes'] = u"value localiser/get('{0}', '{1}')".format(name, key_raw)
 
 
             if element.tag == 'img' and 'alt' not in element.attrib:
@@ -307,22 +319,27 @@ def main():
 
     prop_bundle = []
     for file in pth.path(webapp_files).walkfiles('*.html'):
+    #for file in pth.path('/home/greg/work/site/beso.com/webapp/src/main/webapp/').walkfiles('QuickDetails.html'):
         #template_name = file.namebase.lower()
         base = file.namebase.lower()
         template_name = str(file.abspath()).replace(webapp_files, '').replace('.html', '')
         print template_name 
         if base not in excluded_templates:
-            with file.open() as fp:
-                fp = file.open()
+            with file.open('r+') as fp:
                 template = html.parse(fp)
                 root = template.getroot()
 
                 sc_replacements = process_element(root, template_name)
                 if sc_replacements:
                     prop_bundle.extend(sc_replacements)
+                   
+                    fp.seek(0)
+                    fp.truncate(0)
+                    fp.write(html.tostring(template, pretty_print=True, method="xml").replace('\r', ''))
 
-                    with open(dump_dir + file.name, 'w') as fp:
-                        fp.write(html.tostring(template, pretty_print=True, method='xml').replace('\r',''))
+                    #with open(dump_dir + file.name, 'w') as fp:
+                    #    raise "file"
+                    #    fp.write(html.tostring(template, pretty_print=True, method='html').replace('\r',''))
     
     map1 = dict(((k, v) for v, k in prop_bundle))
 
