@@ -1,0 +1,82 @@
+<html>
+    <head>
+        <title>Websocket example</title>
+
+        <script type="text/javascript" src="smoothie.js"></script>
+
+    </head>
+
+    <body>
+        <h1>CPU STATS</h1>
+        <p>Cyan = Idle</p>
+        <p>Green = User</p>
+        <p>Red = kernel</p>
+        <canvas id="uptime" width="500" height="200"></canvas>
+
+        <script type="text/javascript">
+            /* Open the connection */
+            var webSocket = new WebSocket('ws://10.40.45.81:7777/ws');
+            var smoothie = new SmoothieChart({
+            });
+
+            var canv = document.getElementById("uptime")
+            console.log(canv);
+            smoothie.streamTo(canv, 1000);
+            var uptime1m = new TimeSeries();
+
+            var uptime5m = new TimeSeries();
+            var uptime10m = new TimeSeries();
+
+            // Add to SmoothieChart
+            smoothie.addTimeSeries(uptime1m, {
+                strokeStyle:'rgb(0, 255, 0)', 
+                fillStyle:'rgba(0, 255, 0, 0.4)', 
+                lineWidth: 3 
+            });
+            smoothie.addTimeSeries(uptime5m, {
+                strokeStyle:'rgb(255, 0, 0)', 
+                fillStyle:'rgba(255, 0, 0, 0.3)', 
+                lineWidth: 3 
+            });
+            smoothie.addTimeSeries(uptime10m, {
+                strokeStyle:'rgb(0, 255, 255)', 
+                fillStyle:'rgba(0, 255, 255, 0.2)', 
+                lineWidth: 3 
+            });
+
+            /* When the connection is open send the server some data, in this case the string 'start' */
+            webSocket.onopen = function(event){
+                //document.getElementById('status').innerHTML = 'waiting for socket';
+                webSocket.send('start');
+            };
+
+            webSocket.onmessage = function( oEvent ){
+                //document.getElementById('status').innerHTML += oEvent.data;
+                var lines = oEvent.data.split('\n');
+                for(var i =0; i < lines.length; i++ ) {
+                    var line = lines[i];
+                    var tokens = line.split('  ');
+                    var u1 = Number(tokens[1]);
+                    var u2 = Number(tokens[2]);
+                    var u3 = Number(tokens[3].replace(' ', ''));
+                    if(! isNaN(u1)) {
+                        uptime1m.append(new Date().getTime(), u1);
+                    }
+
+                    if(! isNaN(u2)) {
+                        uptime5m.append(new Date().getTime(), u2);
+                    }
+
+                    if(! isNaN(u3)) {
+                        uptime10m.append(new Date().getTime(), u3);
+                    }
+                }
+            };
+
+            /* If we loose the socket connection run this function */
+            webSocket.onclose = function(event){
+                document.getElementById('status').innerHTML = 'socket closed';
+            };
+        </script>
+    </body>
+</html>
