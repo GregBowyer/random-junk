@@ -10,4 +10,4 @@ clean:
 	-$(RM) stupidos.img stupidos.bin
 
 qemu-test: stupidos.img
-	qemu-kvm -fda stupidos.img
+	qemu -fda stupidos.img
