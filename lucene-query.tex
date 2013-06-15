@@ -1,0 +1,15 @@
+\text{Lucene Practical implemented score::} \\ \\
+w = weight\\
+q = query \\
+d = document \\
+t = term \\ \\
+
+score(q, d) = coord(q,d) \cdot queryNorm(q) \cdot \sum_{t\ in\ d}\left ( tf(t\ in\ d) \cdot idf(t)^2 \cdot termBoost \cdot termNorm(t, d)\right)
+
+\\
+\mathrm{Where} \\
+
+tf(t\ in\ d) = \frac{1}{2}\ frequency \\
+idf(t) = 1 + log\left(\frac{numdocs}{docfreq+1}\right) \\
+coord(q,d) = \frac{overlap}{maxoverlap} \\
+queryNorm(q) = \frac{1}{\frac{1}{2}\sum_{w = 1}^{w}\left(w^2\right)}
