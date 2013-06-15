@@ -1,0 +1,18 @@
+%%-*- mode: erlang -*-
+{application, que,
+ [
+  {description, "que"},
+  {vsn, "1"},
+  {modules, []},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  inets,
+                  crypto,
+                  mochiweb,
+                  webmachine
+                 ]},
+  {mod, { que_app, []}},
+  {env, []}
+ ]}.
