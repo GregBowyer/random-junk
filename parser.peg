@@ -1,0 +1,44 @@
+/**
+ * Gregs rudimentory PEG parser that munges up opentsdb log lines into Json
+ * ? Why ? Because OpenTSDB json format does something really random
+ */
+
+start
+  = metric:metric+
+
+metric
+  = name:string sep timestamp:integer sep value:float sep tags:tag+ eol? 
+  {
+      var _tags = new Object();
+      for each (tag in tags) {
+          _tags[tag[0]] = tag[1];
+      }
+
+      return {
+          "name" : name,
+          "timestamp": timestamp,
+          "value": value,
+          "tags": _tags
+      }
+  }
+
+tag
+  = key:string '=' value:string sep? { return [key, value] }
+
+// Basic lex tokens (in LL speak anyhow)
+
+// This rule is shitty and needs to learn all chars *except* integer
+string "string"
+  = chars:[a-zA-Z\._]+ { return chars.join(""); }
+
+sep
+  = [' '\t]
+
+eol
+  = [\r\n]
+
+integer "integer"
+  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
+
+float "float"
+  = digits:[0-9\.]+ { return parseFloat(digits.join(""), 10); }
